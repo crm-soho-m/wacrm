@@ -84,7 +84,35 @@ export async function middleware(request: NextRequest) {
       NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     )
   }
+  // Suspended accounts: block app pages and authenticated API routes.
+  // RLS on `accounts` lets a user read only their own account row.
+  if (user) {
+    const path = request.nextUrl.pathname
+    const isAppPage = protectedPaths.some((p) => path.startsWith(p))
+    const isApi =
+      path.startsWith('/api/') &&
+      !path.startsWith('/api/platform/') &&
+      !path.startsWith('/api/whatsapp/webhook')
 
+    if (isAppPage || isApi) {
+      const { data: acc } = await supabase
+        .from('accounts')
+        .select('status')
+        .maybeSingle()
+
+      if (acc?.status === 'suspended') {
+        if (isApi) {
+          return withRefreshedCookies(
+            NextResponse.json({ error: 'Account suspended' }, { status: 403 })
+          )
+        }
+        const url = request.nextUrl.clone()
+        url.pathname = '/suspended'
+        url.search = ''
+        return withRefreshedCookies(NextResponse.redirect(url))
+      }
+    }
+  }
   return supabaseResponse
 }
 
