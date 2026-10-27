@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -28,6 +30,15 @@ export default function PlatformAdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+
+  const [companyName, setCompanyName] = useState('');
+  const [ownerEmail, setOwnerEmail] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [setupLink, setSetupLink] = useState<string | null>(null);
+  const [createdName, setCreatedName] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -74,6 +85,47 @@ export default function PlatformAdminPage() {
     }
   }
 
+  async function createAccount(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    setCreateError(null);
+    setSetupLink(null);
+    setCopied(false);
+    try {
+      const res = await fetch('/api/platform/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyName, ownerEmail, ownerName }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setCreateError(body?.error ?? 'Não foi possível criar a empresa');
+        return;
+      }
+      setCreatedName(body.account?.name ?? companyName);
+      setSetupLink(body.setup_link ?? null);
+      if (!body.setup_link) {
+        setCreateError(
+          'Empresa criada, mas o link de primeiro acesso não foi gerado.',
+        );
+      }
+      setCompanyName('');
+      setOwnerEmail('');
+      setOwnerName('');
+      await load();
+    } catch {
+      setCreateError('Erro de conexão');
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function copyLink() {
+    if (!setupLink) return;
+    await navigator.clipboard.writeText(setupLink);
+    setCopied(true);
+  }
+
   return (
     <main className="mx-auto max-w-5xl p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -82,6 +134,68 @@ export default function PlatformAdminPage() {
           Atualizar
         </Button>
       </div>
+
+      <section className="mb-8 rounded-md border p-4">
+        <h2 className="mb-3 text-lg font-medium">Nova empresa</h2>
+        <form onSubmit={createAccount} className="grid gap-3 sm:grid-cols-3">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="companyName">Nome da empresa</Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="ownerEmail">E-mail do responsável</Label>
+            <Input
+              id="ownerEmail"
+              type="email"
+              value={ownerEmail}
+              onChange={(e) => setOwnerEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="ownerName">Nome do responsável (opcional)</Label>
+            <Input
+              id="ownerName"
+              value={ownerName}
+              onChange={(e) => setOwnerName(e.target.value)}
+            />
+          </div>
+          <div className="sm:col-span-3">
+            <Button type="submit" disabled={creating}>
+              {creating ? 'Criando...' : 'Criar empresa'}
+            </Button>
+          </div>
+        </form>
+
+        {createError && (
+          <p className="mt-3 rounded-md border p-3 text-sm">{createError}</p>
+        )}
+
+        {setupLink && (
+          <div className="mt-3 rounded-md border p-3 text-sm">
+            <p className="mb-2 font-medium">
+              Empresa &quot;{createdName}&quot; criada. Envie este link de
+              primeiro acesso ao responsável (ele escolhe a própria senha). O
+              link aparece só agora e expira em cerca de 1 hora.
+            </p>
+            <Input readOnly value={setupLink} onFocus={(e) => e.target.select()} />
+            <Button
+              className="mt-2"
+              size="sm"
+              variant="outline"
+              type="button"
+              onClick={copyLink}
+            >
+              {copied ? 'Copiado' : 'Copiar link'}
+            </Button>
+          </div>
+        )}
+      </section>
 
       {error && (
         <p className="mb-4 rounded-md border p-3 text-sm">{error}</p>
