@@ -120,11 +120,19 @@ export async function POST(request: Request) {
       if (!pipeline || !stage) {
         dealSkipped = 'no_pipeline';
       } else {
+                const { data: acct } = await ctx.supabase
+          .from('accounts')
+          .select('owner_user_id, default_currency')
+          .eq('id', ctx.accountId)
+          .maybeSingle();
+
         const { data: created_deal, error: dealErr } = await ctx.supabase
           .from('deals')
           .insert({
             account_id: ctx.accountId,
             user_id: auditUserId,
+            assigned_to: acct?.owner_user_id ?? null,
+            currency: acct?.default_currency ?? undefined,
             pipeline_id: pipeline.id,
             stage_id: stage.id,
             contact_id: contactId,

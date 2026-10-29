@@ -80,6 +80,15 @@ export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
         <span className="truncate text-xs text-muted-foreground">{contactLabel}</span>
       </div>
 
+            {deal.source && (
+        <div className="mt-2">
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+            {deal.source}
+            {deal.utm_campaign ? ` · ${deal.utm_campaign}` : ""}
+          </span>
+        </div>
+      )}
+      
       <div className="mt-2 flex items-center justify-between">
         <span className="text-sm font-bold text-primary">
           {formatCurrency(deal.value, deal.currency)}

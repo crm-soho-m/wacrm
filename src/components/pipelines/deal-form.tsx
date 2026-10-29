@@ -376,6 +376,30 @@ export function DealForm({
               />
             </div>
 
+                        {deal?.source && (
+              <div className="space-y-1 rounded-lg border border-border bg-muted/50 p-3 text-xs">
+                <p className="font-medium uppercase tracking-wider text-muted-foreground">
+                  Origem do lead
+                </p>
+                <p className="text-foreground">
+                  {[deal.source, deal.channel].filter(Boolean).join(" · ")}
+                </p>
+                {(deal.utm_source || deal.utm_medium || deal.utm_campaign) && (
+                  <p className="text-muted-foreground">
+                    {[deal.utm_source, deal.utm_medium, deal.utm_campaign]
+                      .filter(Boolean)
+                      .join(" / ")}
+                  </p>
+                )}
+                {deal.landing_page && (
+                  <p className="break-all text-muted-foreground">{deal.landing_page}</p>
+                )}
+                {deal.lead_message && (
+                  <p className="whitespace-pre-wrap text-foreground">{deal.lead_message}</p>
+                )}
+              </div>
+            )}
+            
             {deal && (
               <div className="space-y-2 rounded-lg border border-border bg-muted/50 p-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

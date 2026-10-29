@@ -388,7 +388,14 @@ export interface Deal {
   updated_at?: string;
   contact?: Contact;
   stage?: PipelineStage;
-  assignee?: Profile;
+    assignee?: Profile;
+  source?: string | null;
+  channel?: string | null;
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  landing_page?: string | null;
+  lead_message?: string | null;
 }
 
 export type BroadcastStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
