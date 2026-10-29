@@ -94,6 +94,17 @@ export async function requireApiKey(
     throw unauthorized();
   }
 
+    // Suspended accounts lose API access too. Fail closed if the
+  // account row can't be read.
+  const { data: acc } = await supabaseAdmin()
+    .from('accounts')
+    .select('status')
+    .eq('id', row.account_id)
+    .maybeSingle();
+  if (!acc || acc.status === 'suspended') {
+    throw forbidden('Account suspended');
+  }
+  
   // Rate-limit per key, before the scope check, so an unauthorized-
   // scope caller still can't hammer the endpoint for free.
   const limit = checkRateLimit(`apikey:${row.id}`, RATE_LIMITS.publicApi);
