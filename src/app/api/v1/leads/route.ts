@@ -126,12 +126,21 @@ export async function POST(request: Request) {
           .eq('id', ctx.accountId)
           .maybeSingle();
 
-        const { data: created_deal, error: dealErr } = await ctx.supabase
+                const { data: ownerProfile } = acct?.owner_user_id
+          ? await ctx.supabase
+              .from('profiles')
+              .select('id')
+              .eq('user_id', acct.owner_user_id)
+              .eq('account_id', ctx.accountId)
+              .maybeSingle()
+          : { data: null };
+          
+          const { data: created_deal, error: dealErr } = await ctx.supabase
           .from('deals')
           .insert({
             account_id: ctx.accountId,
             user_id: auditUserId,
-            assigned_to: acct?.owner_user_id ?? null,
+            assigned_to: ownerProfile?.id ?? null,
             currency: acct?.default_currency ?? undefined,
             pipeline_id: pipeline.id,
             stage_id: stage.id,
