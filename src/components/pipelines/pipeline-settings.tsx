@@ -38,16 +38,16 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 const STAGE_COLORS = [
-  "#3b82f6",
-  "#6366f1",
+  "#999999",
+  "#6b6b6b",
+  "#000000",
+  "#ff3d77",
+  "#e5004c",
+  "#b80039",
+  "#f59e0b",
+  "#16a34a",
+  "#0ea5e9",
   "#8b5cf6",
-  "#ec4899",
-  "#f43f5e",
-  "#f97316",
-  "#eab308",
-  "#22c55e",
-  "#14b8a6",
-  "#06b6d4",
 ];
 
 interface PipelineSettingsProps {

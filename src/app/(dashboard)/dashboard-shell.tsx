@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { AccountAccessAlert } from "@/components/layout/account-access-alert";
 import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
 
@@ -49,13 +50,14 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header onOpenSidebar={() => setSidebarOpen(true)} />
         {/* Thinner horizontal padding on mobile so cards have room to breathe. */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto p-4 pb-28 sm:p-6 sm:pb-28 lg:pb-6">
           {/* Above every page: writes are being rejected and here's why.
               Renders nothing unless the account/role failed to resolve. */}
           <AccountAccessAlert />
           {children}
         </main>
       </div>
+      <BottomNav onOpenMenu={() => setSidebarOpen(true)} />
     </div>
   );
 }

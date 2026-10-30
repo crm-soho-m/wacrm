@@ -158,6 +158,9 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
   return (
     <>
+      {/* Reserva o espaço do menu recolhido no desktop; o menu em si flutua por cima. */}
+      <div aria-hidden className="hidden w-[5rem] shrink-0 lg:block" />
+
       {/* Backdrop — only exists on mobile and only when open. Clicking
           it closes the drawer. Hidden from lg+ since the sidebar is
           part of the main flex row there. */}
@@ -180,15 +183,17 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           "transition-transform duration-200 ease-out will-change-transform",
           open ? "translate-x-0" : "-translate-x-full",
           // Desktop: static, always visible — reset all the mobile framing.
-          "lg:static lg:z-0 lg:w-64 lg:translate-x-0 lg:rounded-[2rem] lg:shadow-none lg:transition-none",
+          "group/side lg:fixed lg:inset-y-3 lg:left-3 lg:z-40 lg:h-auto lg:w-[5rem] lg:translate-x-0 lg:overflow-hidden lg:rounded-[2rem] lg:shadow-sm lg:transition-[width,box-shadow] lg:duration-200 lg:ease-out",
+          "lg:hover:w-64 lg:hover:shadow-2xl lg:has-[:focus-visible]:w-64 lg:has-[:focus-visible]:shadow-2xl",
         )}
         aria-label="Primary"
       >
         {/* Logo row. On mobile we put a close button here; on desktop the
             close button is hidden since the sidebar is always-visible. */}
-        <div className="flex h-20 shrink-0 items-center justify-between gap-2 px-5">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/logo-soho.png" alt="SohoM" className="h-10 w-auto rounded-xl" />
+        <div className="flex h-20 shrink-0 items-center justify-between gap-2 px-4 lg:px-4">
+          <Link href="/dashboard" aria-label="SohoM" className="flex items-center gap-2">
+            <img src="/logo-soho.png" alt="SohoM" className="h-10 w-auto rounded-xl lg:hidden lg:group-hover/side:block lg:group-has-[:focus-visible]/side:block" />
+            <img aria-hidden src="/logo-soho-favicon.png" alt="" className="hidden h-10 w-10 rounded-xl object-contain lg:block lg:group-hover/side:hidden lg:group-has-[:focus-visible]/side:hidden" />
           </Link>
           <button
             type="button"
@@ -201,7 +206,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </div>
 
         {/* Main navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden">
           <ul className="flex flex-col gap-1">
             {navItems.map((item) => {
               const isActive =
@@ -230,8 +235,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span className="flex-1">{t(item.labelKey as string)}</span>
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 whitespace-nowrap lg:opacity-0 lg:transition-opacity lg:group-hover/side:opacity-100 lg:group-has-[:focus-visible]/side:opacity-100">{t(item.labelKey as string)}</span>
                     {item.beta && (
                       <span
                         aria-label={t("beta")}
@@ -279,8 +284,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
-                    <item.icon className="h-4 w-4" />
-                    {t(item.labelKey as string)}
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    <span className="whitespace-nowrap lg:opacity-0 lg:transition-opacity lg:group-hover/side:opacity-100 lg:group-has-[:focus-visible]/side:opacity-100">{t(item.labelKey as string)}</span>
                   </Link>
                 </li>
               );
@@ -297,7 +302,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               below; for renamed or shared accounts it tells the user
               which account they're acting in. */}
           {showAccountStrip && account?.name ? (
-            <div className="mb-2 flex items-center gap-2 px-3 text-xs text-muted-foreground">
+            <div className="mb-2 flex items-center gap-2 px-3 text-xs text-muted-foreground lg:hidden lg:group-hover/side:flex lg:group-has-[:focus-visible]/side:flex">
               <UsersRound className="size-3.5 shrink-0" />
               {/* `title=` exposes the full name on hover when it
                   gets truncated (long account names + narrow
@@ -340,7 +345,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     "U"}
                 </AvatarFallback>
               </Avatar>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 lg:opacity-0 lg:transition-opacity lg:group-hover/side:opacity-100 lg:group-has-[:focus-visible]/side:opacity-100">
                 <p className="truncate text-sm font-medium text-foreground">
                   {profile?.full_name ?? t("defaultUser")}
                 </p>

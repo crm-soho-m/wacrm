@@ -41,18 +41,12 @@ export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
         e.stopPropagation();
         onEdit(deal);
       }}
-      className={`group relative w-full cursor-pointer rounded-xl border border-border/50 bg-muted/70 pl-4 pr-3 py-3 text-left shadow-sm transition-all ${
+      className={`group relative w-full cursor-pointer rounded-[22px] bg-card p-4 text-left transition-all ${
         isOverlay
           ? "shadow-xl"
-          : "hover:-translate-y-0.5 hover:border-border hover:bg-muted hover:shadow-lg"
+          : "hover:-translate-y-0.5 hover:shadow-md"
       }`}
     >
-      {/* 4px left accent bar using stage color */}
-      <span
-        aria-hidden
-        className="absolute left-0 top-0 h-full w-1 rounded-l-xl"
-        style={{ backgroundColor: stage?.color ?? "#94a3b8" }}
-      />
 
       <div className="flex items-start justify-between gap-2">
         <h4 className="flex-1 text-sm font-semibold leading-snug text-foreground break-words">
@@ -90,7 +84,7 @@ export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
       )}
       
       <div className="mt-2 flex items-center justify-between">
-        <span className="text-sm font-bold text-primary">
+        <span className="text-lg font-light tracking-tight text-foreground">
           {formatCurrency(deal.value, deal.currency)}
         </span>
         {deal.expected_close_date && (
@@ -105,7 +99,7 @@ export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
         <div className="mt-2 flex items-center justify-end">
           <span
             title={assigneeLabel}
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-[10px] font-semibold text-primary"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background"
           >
             {initials(assigneeLabel)}
           </span>

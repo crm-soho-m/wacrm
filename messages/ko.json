@@ -16,6 +16,7 @@
   },
   "Sidebar": {
     "title": "SohoM",
+    "menu": "메뉴",
     "dashboard": "대시보드",
     "inbox": "인박스",
     "notifications": "알림",

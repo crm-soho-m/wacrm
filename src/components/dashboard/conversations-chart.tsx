@@ -55,16 +55,16 @@ export function ConversationsChart({ series, loading, range, onRangeChange }: Co
           <h2 className="text-sm font-semibold text-foreground">{t('title')}</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">{t('description')}</p>
         </div>
-        <div className="flex items-center gap-1 rounded-lg bg-muted/60 p-1">
+        <div className="flex items-center gap-1 rounded-full bg-muted p-1">
           {[7, 30, 90].map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => onRangeChange(r as RangeDays)}
               className={cn(
-                'rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                'rounded-full px-3 py-1 text-xs font-medium transition-colors',
                 range === r
-                  ? 'bg-secondary text-secondary-foreground'
+                  ? 'bg-foreground text-background'
                   : 'text-muted-foreground hover:text-foreground',
               )}
             >
@@ -126,13 +126,11 @@ function LineSvg({
   // x step can be fractional for 90-day views; points are positioned
   // at the center of each "slot" so the first and last points don't
   // sit right on the axis.
-  const stepX = data.length > 1 ? chartW / (data.length - 1) : 0
+  const stepX = data.length > 0 ? chartW / data.length : 0
   const yFor = (v: number) =>
     maxY === 0 ? PADDING.top + chartH : PADDING.top + chartH - (v / maxY) * chartH
-  const xFor = (i: number) => PADDING.left + i * stepX
-
-  const incomingPath = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${xFor(i)},${yFor(p.incoming)}`).join(' ')
-  const outgoingPath = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${xFor(i)},${yFor(p.outgoing)}`).join(' ')
+  const xFor = (i: number) => PADDING.left + (i + 0.5) * stepX
+  const barW = Math.max(2, Math.min(7, stepX * 0.3))
 
   // Mouse-move: use the SVG's current screen-CTM to map clientX
   // back to viewBox coordinates. The previous rect-based math
@@ -161,14 +159,14 @@ function LineSvg({
       const relative = xVb - PADDING.left
       const idx = Math.max(
         0,
-        Math.min(data.length - 1, Math.round(stepX === 0 ? 0 : relative / stepX)),
+        Math.min(data.length - 1, Math.floor(stepX === 0 ? 0 : relative / stepX)),
       )
       // Map the snapped data-point's viewBox x back to screen, then
       // subtract the wrapper's left edge — that pixel offset is what
       // the absolutely-positioned tooltip div consumes. `xFor` is
       // inlined here so the effect deps stay stable (it's a closure
       // that'd otherwise be a new reference every render).
-      const dataPointVbX = PADDING.left + idx * stepX
+      const dataPointVbX = PADDING.left + (idx + 0.5) * stepX
       const dataPointPt = svg.createSVGPoint()
       dataPointPt.x = dataPointVbX
       dataPointPt.y = 0
@@ -213,7 +211,7 @@ function LineSvg({
                 y1={y}
                 y2={y}
                 stroke="var(--border)"
-                strokeDasharray="3 3"
+                strokeDasharray="2 4"
               />
               <text
                 x={PADDING.left - 8}
@@ -243,40 +241,34 @@ function LineSvg({
           ) : null,
         )}
 
-        {/* Outgoing polyline (violet) */}
-        <path
-          d={outgoingPath}
-          fill="none"
-          stroke="var(--primary)"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {/* Incoming polyline (blue) */}
-        <path
-          d={incomingPath}
-          fill="none"
-          stroke="var(--foreground)"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Hover crosshair */}
-        {hover !== null && (
-          <g pointerEvents="none">
-            <line
-              x1={hoverX}
-              x2={hoverX}
-              y1={PADDING.top}
-              y2={PADDING.top + chartH}
-              stroke="var(--muted-foreground)"
-              strokeDasharray="3 3"
-            />
-            <circle cx={hoverX} cy={yFor(data[hover.idx].incoming)} r={3.5} fill="var(--foreground)" />
-            <circle cx={hoverX} cy={yFor(data[hover.idx].outgoing)} r={3.5} fill="var(--primary)" />
-          </g>
-        )}
+        {/* Barras finas: entrada em preto, saída em rosa */}
+        {data.map((p, i) => {
+          const cx = xFor(i)
+          const base = PADDING.top + chartH
+          const hIn = Math.max(p.incoming > 0 ? 2 : 0, base - yFor(p.incoming))
+          const hOut = Math.max(p.outgoing > 0 ? 2 : 0, base - yFor(p.outgoing))
+          const dim = hover !== null && hover.idx !== i
+          return (
+            <g key={p.day} opacity={dim ? 0.35 : 1}>
+              <rect
+                x={cx - barW - 0.75}
+                y={base - hIn}
+                width={barW}
+                height={hIn}
+                rx={barW / 2}
+                fill="var(--foreground)"
+              />
+              <rect
+                x={cx + 0.75}
+                y={base - hOut}
+                width={barW}
+                height={hOut}
+                rx={barW / 2}
+                fill="var(--primary)"
+              />
+            </g>
+          )
+        })}
       </svg>
 
       {/* Tooltip — absolute-positioned div so we get crisp text, not
@@ -290,8 +282,8 @@ function LineSvg({
         >
           <div className="font-medium text-popover-foreground">{longDayLabel(hovered.day)}</div>
           <div className="mt-1 flex flex-col gap-0.5">
-            <span className="flex items-center gap-1.5 text-blue-300">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
+            <span className="flex items-center gap-1.5 text-foreground">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground" />
               {t('tooltipIncoming', { count: hovered.incoming })}
             </span>
             <span className="flex items-center gap-1.5 text-primary">
