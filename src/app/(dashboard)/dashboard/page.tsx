@@ -40,7 +40,8 @@ type RangeDays = 7 | 30 | 90
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard.page')
-  const { defaultCurrency } = useAuth()
+  const { defaultCurrency, profile } = useAuth()
+  const firstName = (profile?.full_name ?? profile?.email ?? '').split(/[\s@]/)[0]
   const [metrics, setMetrics] = useState<MetricsBundle | null>(null)
   const [metricsLoading, setMetricsLoading] = useState(true)
 
@@ -125,7 +126,9 @@ export default function DashboardPage() {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
+        <h1 className="text-4xl font-light tracking-tight text-foreground">
+          {t('greeting', { name: firstName })}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {t('description')}
         </p>

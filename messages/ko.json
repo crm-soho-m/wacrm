@@ -15,7 +15,7 @@
     "createAccount": "계정 만들기"
   },
   "Sidebar": {
-    "title": "WhatsApp용 CRM 템플릿",
+    "title": "SohoM",
     "dashboard": "대시보드",
     "inbox": "인박스",
     "notifications": "알림",
@@ -55,7 +55,9 @@
     "defaultAvatar": "아바타",
     "menuProfile": "프로필",
     "menuSettings": "설정",
-    "menuSignOut": "로그아웃"
+    "menuSignOut": "로그아웃",
+    "flows": "Flows",
+    "aiAgents": "AI Agents"
   },
   "ModeToggle": {
     "switchMode": "{mode} 모드로 전환"
@@ -69,6 +71,7 @@
   },
   "Dashboard": {
     "page": {
+      "greeting": "Hello, {name}",
       "title": "대시보드",
       "description": "대화, 연락처, 딜, 브로드캐스트, 자동화 전반의 실시간 분석입니다.",
       "activeConversations": "진행 중인 대화",

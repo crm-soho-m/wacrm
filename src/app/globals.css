@@ -228,3 +228,70 @@ html[data-theme="rose"] {
     @apply font-sans;
   }
 }
+
+/* ============================================================
+ * SOHOM IDENTITY (rosa #e5004c / preto / cinza) - sobrescreve os tokens acima
+ * ============================================================ */
+
+html[data-theme="soho"] {
+  --primary: #e5004c;
+  --primary-foreground: #ffffff;
+  --primary-hover: #c40040;
+  --primary-soft: rgba(229, 0, 76, 0.12);
+  --primary-soft-2: rgba(229, 0, 76, 0.2);
+  --ring: #e5004c;
+  --chart-1: #e5004c;
+  --chart-2: #999999;
+  --sidebar-primary: #e5004c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-ring: #e5004c;
+}
+
+:root,
+html[data-mode="dark"] {
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --card: #151515;
+  --card-2: #1c1c1c;
+  --card-foreground: #fafafa;
+  --popover: #151515;
+  --popover-foreground: #fafafa;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #fafafa;
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
+  --accent: #1f1f1f;
+  --accent-foreground: #fafafa;
+  --border: #2a2a2a;
+  --input: #2a2a2a;
+  --radius: 1rem;
+  --sidebar: #101010;
+  --sidebar-foreground: #fafafa;
+  --sidebar-accent: #1f1f1f;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #2a2a2a;
+}
+
+html[data-mode="light"] {
+  --background: #f1f1f1;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-2: #f7f7f7;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --secondary: #e8e8e8;
+  --secondary-foreground: #000000;
+  --muted: #e8e8e8;
+  --muted-foreground: #6b6b6b;
+  --accent: #e8e8e8;
+  --accent-foreground: #000000;
+  --border: #e2e2e2;
+  --input: #d6d6d6;
+  --radius: 1rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #000000;
+  --sidebar-accent: #f1f1f1;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #e2e2e2;
+}

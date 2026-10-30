@@ -14,7 +14,7 @@
  */
 
 export const THEME_IDS = [
-  "violet",
+  "soho","violet",
   "emerald",
   "cobalt",
   "amber",
@@ -23,9 +23,9 @@ export const THEME_IDS = [
 
 export type ThemeId = (typeof THEME_IDS)[number];
 
-export const DEFAULT_THEME: ThemeId = "violet";
+export const DEFAULT_THEME: ThemeId = "soho";
 
-export const STORAGE_KEY = "wacrm.theme";
+export const STORAGE_KEY = "sohom.theme";
 
 /**
  * MODE — the light/dark dimension, orthogonal to the accent theme.
@@ -43,9 +43,9 @@ export const MODES = ["light", "dark"] as const;
 
 export type Mode = (typeof MODES)[number];
 
-export const DEFAULT_MODE: Mode = "dark";
+export const DEFAULT_MODE: Mode = "light";
 
-export const MODE_STORAGE_KEY = "wacrm.mode";
+export const MODE_STORAGE_KEY = "sohom.mode";
 
 export function isMode(value: unknown): value is Mode {
   return (
@@ -67,6 +67,7 @@ export interface ThemeMeta {
 }
 
 export const THEMES: ReadonlyArray<ThemeMeta> = [
+  { id: "soho", name: "Soho", tagline: "Rosa SohoM, identidade padrao.", swatch: "#e5004c" },
   {
     id: "violet",
     name: "Violet",

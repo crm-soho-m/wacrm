@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/hooks/use-theme";
@@ -15,17 +15,17 @@ import {
   THEME_IDS,
 } from "@/lib/themes";
 
-const inter = Inter({
+const inter = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "wacrm",
-    template: "%s — wacrm",
+    default: "SohoM",
+    template: "%s | SohoM",
   },
-  description: "Self-hostable CRM template for WhatsApp.",
+  description: "CRM no WhatsApp para pequenas empresas.",
   robots: {
     index: false,
     follow: false,
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#020617",
+  themeColor: "#e5004c",
   colorScheme: "dark light",
 };
 

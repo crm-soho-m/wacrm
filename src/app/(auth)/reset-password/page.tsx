@@ -38,7 +38,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-4 p-6">
+    <main className="mx-auto flex w-full max-w-sm flex-col justify-center gap-4 p-6">
       <h1 className="text-2xl font-semibold">Definir senha</h1>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">

@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MessageSquare, CheckCircle, ArrowLeft } from "lucide-react";
+import { CheckCircle, ArrowLeft } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -43,19 +43,18 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <Card className="w-full max-w-md border-border bg-card">
-          <CardHeader className="items-center text-center">
+      <div className="flex w-full items-center justify-center px-4 py-10">
+        <Card className="w-full max-w-md border-0 bg-transparent shadow-none ring-0">
+          <CardHeader className="items-start text-left">
             <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
               <CheckCircle className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="text-xl text-foreground">
-              Check your email
+            <CardTitle className="text-3xl font-semibold tracking-tight text-foreground">
+              Verifique seu e-mail
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              We&apos;ve sent a password reset link to{" "}
-              <span className="text-foreground">{email}</span>. Please check your
-              inbox.
+              Enviamos um link para redefinir sua senha para{" "}
+              <span className="text-foreground">{email}</span>. Confira sua caixa de entrada.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -64,7 +63,7 @@ export default function ForgotPasswordPage() {
                 variant="outline"
                 className="w-full border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               >
-                Back to sign in
+                Voltar para o login
               </Button>
             </Link>
           </CardContent>
@@ -74,15 +73,12 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md border-border bg-card">
-        <CardHeader className="items-center text-center">
-          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <MessageSquare className="h-6 w-6 text-primary" />
-          </div>
-          <CardTitle className="text-xl text-foreground">Reset password</CardTitle>
+    <div className="flex w-full items-center justify-center px-4 py-10">
+      <Card className="w-full max-w-md border-0 bg-transparent shadow-none ring-0">
+        <CardHeader className="items-start text-left">
+          <CardTitle className="text-3xl font-semibold tracking-tight text-foreground">Redefinir senha</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Enter your email and we&apos;ll send you a reset link
+            Digite seu e-mail e enviaremos um link para redefinir sua senha
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -95,12 +91,12 @@ export default function ForgotPasswordPage() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="email" className="text-muted-foreground">
-                Email
+                E-mail
               </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="voce@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -113,7 +109,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {loading ? "Sending..." : "Send reset link"}
+              {loading ? "Enviando..." : "Enviar link"}
             </Button>
           </form>
 
@@ -122,7 +118,7 @@ export default function ForgotPasswordPage() {
             className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to sign in
+            Voltar para o login
           </Link>
         </CardContent>
       </Card>

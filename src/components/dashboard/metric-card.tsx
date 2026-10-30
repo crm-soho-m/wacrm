@@ -23,14 +23,14 @@ interface MetricCardProps {
 
 export function MetricCard({ title, value, icon: Icon, delta, subtitle }: MetricCardProps) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="rounded-2xl bg-card p-6">
       <div className="flex items-start justify-between">
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <Icon className="h-4 w-4" />
         </div>
       </div>
-      <p className="mt-3 text-[28px] leading-none font-bold tabular-nums text-foreground">
+      <p className="mt-4 text-4xl leading-none font-light tracking-tight tabular-nums text-foreground">
         {value}
       </p>
       {delta ? <DeltaRow sign={delta.sign} label={delta.label} /> : subtitle ? (
@@ -43,14 +43,14 @@ export function MetricCard({ title, value, icon: Icon, delta, subtitle }: Metric
 function DeltaRow({ sign, label }: { sign: number; label: string }) {
   const tone =
     sign > 0
-      ? 'text-primary'
+      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
       : sign < 0
-      ? 'text-red-400'
-      : 'text-muted-foreground'
+      ? 'bg-primary/10 text-primary'
+      : 'bg-muted text-muted-foreground'
   const Arrow = sign > 0 ? ArrowUp : sign < 0 ? ArrowDown : Minus
   return (
-    <div className={cn('mt-2 flex items-center gap-1 text-sm', tone)}>
-      <Arrow className="h-4 w-4" aria-hidden />
+    <div className={cn('mt-3 inline-flex w-fit items-center gap-1 rounded-full px-3 py-1 text-xs font-bold', tone)}>
+      <Arrow className="h-3.5 w-3.5" aria-hidden />
       <span className="tabular-nums">{label}</span>
     </div>
   )
