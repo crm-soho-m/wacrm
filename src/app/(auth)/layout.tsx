@@ -25,7 +25,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <aside className="flex shrink-0 flex-col justify-between gap-6 rounded-[2rem] bg-primary p-6 text-primary-foreground lg:w-[46%] lg:gap-12 lg:p-12">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo-soho.png"
+          src="/logo-soho.svg"
           alt="SohoM"
           className="h-10 w-auto self-start rounded-xl lg:h-14"
         />

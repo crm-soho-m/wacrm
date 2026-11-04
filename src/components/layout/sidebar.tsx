@@ -192,8 +192,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             close button is hidden since the sidebar is always-visible. */}
         <div className="flex h-20 shrink-0 items-center justify-between gap-2 px-4 lg:px-4">
           <Link href="/dashboard" aria-label="SohoM" className="flex items-center gap-2">
-            <img src="/logo-soho.png" alt="SohoM" className="h-10 w-auto rounded-xl lg:hidden lg:group-hover/side:block lg:group-has-[:focus-visible]/side:block" />
-            <img aria-hidden src="/logo-soho-favicon.png" alt="" className="hidden h-10 w-10 rounded-xl object-contain lg:block lg:group-hover/side:hidden lg:group-has-[:focus-visible]/side:hidden" />
+            <img src="/logo-soho.svg" alt="SohoM" className="h-10 w-auto rounded-xl lg:hidden lg:group-hover/side:block lg:group-has-[:focus-visible]/side:block" />
+            <img aria-hidden src="/logo-soho-favicon.svg" alt="" className="hidden h-10 w-10 rounded-xl object-contain lg:block lg:group-hover/side:hidden lg:group-has-[:focus-visible]/side:hidden" />
           </Link>
           <button
             type="button"
