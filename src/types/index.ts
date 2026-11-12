@@ -279,6 +279,8 @@ export interface WhatsAppConfig {
   waba_id?: string;
   access_token: string;
   verify_token?: string;
+  /** Chave (App Secret) do app da Meta, criptografada. */
+  app_secret?: string | null;
   status: 'connected' | 'disconnected';
   connected_at?: string;
   /**

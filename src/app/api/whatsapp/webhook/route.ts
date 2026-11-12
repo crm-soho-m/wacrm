@@ -6,7 +6,7 @@ import { mirrorInboundMedia } from '@/lib/whatsapp/mirror-inbound-media'
 import { normalizePhone } from '@/lib/whatsapp/phone-utils'
 import { findExistingContact, isUniqueViolation } from '@/lib/contacts/dedupe'
 import { reopenClosedConversation } from '@/lib/conversations/reopen'
-import { verifyMetaWebhookSignature } from '@/lib/whatsapp/webhook-signature'
+import { verifyMetaWebhookSignatureWithSecrets } from '@/lib/whatsapp/webhook-signature'
 import { runAutomationsForTrigger } from '@/lib/automations/engine'
 import { dispatchInboundToFlows } from '@/lib/flows/engine'
 import { dispatchInboundToAiReply } from '@/lib/ai/auto-reply'
@@ -179,6 +179,97 @@ export async function GET(request: Request) {
   }
 }
 
+type SecretCandidate = {
+  secret: string
+  /** null = chave global (vale para qualquer número). */
+  phoneNumberId: string | null
+  wabaId: string | null
+}
+
+const META_ID_RE = /^\d{1,30}$/
+
+/**
+ * Reune as chaves que podem ter assinado este webhook: a chave do app de
+ * cada número/conta citado no corpo (guardada criptografada por cliente) e
+ * a chave global META_APP_SECRET. O corpo ainda NÃO é confiável aqui — ele
+ * só serve para escolher quais chaves testar; a assinatura é que valida.
+ * IDs fora do formato numérico da Meta são ignorados (nada vai ao filtro).
+ */
+async function resolveWebhookCandidates(rawBody: string): Promise<SecretCandidate[]> {
+  const out: SecretCandidate[] = []
+  const globalSecret = process.env.META_APP_SECRET
+  if (globalSecret) out.push({ secret: globalSecret, phoneNumberId: null, wabaId: null })
+
+  try {
+    const parsed = JSON.parse(rawBody) as {
+      entry?: Array<{
+        id?: unknown
+        changes?: Array<{ value?: { metadata?: { phone_number_id?: unknown } } }>
+      }>
+    }
+    const phoneIds = new Set<string>()
+    const wabaIds = new Set<string>()
+    for (const entry of (parsed.entry ?? []).slice(0, 20)) {
+      if (typeof entry.id === 'string' && META_ID_RE.test(entry.id)) wabaIds.add(entry.id)
+      for (const change of (entry.changes ?? []).slice(0, 50)) {
+        const pid = change.value?.metadata?.phone_number_id
+        if (typeof pid === 'string' && META_ID_RE.test(pid)) phoneIds.add(pid)
+      }
+    }
+    if (phoneIds.size === 0 && wabaIds.size === 0) return out
+
+    const filters: string[] = []
+    if (phoneIds.size) filters.push(`phone_number_id.in.(${[...phoneIds].join(',')})`)
+    if (wabaIds.size) filters.push(`waba_id.in.(${[...wabaIds].join(',')})`)
+
+    const { data } = await supabaseAdmin()
+      .from('whatsapp_config')
+      .select('app_secret, phone_number_id, waba_id')
+      .or(filters.join(','))
+      .not('app_secret', 'is', null)
+
+    for (const row of data ?? []) {
+      try {
+        if (row.app_secret) {
+          out.push({
+            secret: decrypt(row.app_secret),
+            phoneNumberId: row.phone_number_id ?? null,
+            wabaId: row.waba_id ?? null,
+          })
+        }
+      } catch {
+        console.error('[webhook] could not decrypt a stored app_secret')
+      }
+    }
+  } catch {
+    // corpo ilegível: só a chave global (se houver) vale
+  }
+  return out
+}
+
+/**
+ * Se quem assinou foi a chave de UM cliente, só os eventos do número/conta
+ * dele são aceitos. Impede que um cliente assine um aviso citando também o
+ * número de outro cliente.
+ */
+function restrictToCandidate(
+  body: { entry?: WhatsAppWebhookEntry[] },
+  c: SecretCandidate,
+): { entry?: WhatsAppWebhookEntry[] } {
+  if (c.phoneNumberId === null && c.wabaId === null) return body
+  const entries = (body.entry ?? [])
+    .map((entry) => ({
+      ...entry,
+      changes: (entry.changes ?? []).filter((change) => {
+        const pid = (change.value as { metadata?: { phone_number_id?: string } } | undefined)
+          ?.metadata?.phone_number_id
+        return pid ? pid === c.phoneNumberId : entry.id === c.wabaId
+      }),
+    }))
+    .filter((entry) => entry.changes.length > 0)
+  return { ...body, entry: entries }
+}
+
 // POST - Receive messages
 export async function POST(request: Request) {
   // Read raw body first so we can HMAC-verify the exact bytes Meta
@@ -186,7 +277,11 @@ export async function POST(request: Request) {
   const rawBody = await request.text()
   const signature = request.headers.get('x-hub-signature-256')
 
-  if (!verifyMetaWebhookSignature(rawBody, signature)) {
+  const candidates = await resolveWebhookCandidates(rawBody)
+  const matched = candidates.find((c) =>
+    verifyMetaWebhookSignatureWithSecrets(rawBody, signature, [c.secret]),
+  )
+  if (!matched) {
     // 401 (not 200) — we want Meta's delivery dashboard to show failures
     // loudly if a misconfiguration causes signatures to stop matching,
     // rather than silently eating events.
@@ -200,6 +295,9 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
+
+  // Chave de um cliente => só os eventos dele passam.
+  body = restrictToCandidate(body, matched)
 
   // Process AFTER the response so we ack Meta within their ~20s timeout
   // (a slow ack triggers Meta retries + duplicate inserts), while still

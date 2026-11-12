@@ -1,6 +1,9 @@
 import crypto from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { verifyMetaWebhookSignature } from "./webhook-signature";
+import {
+  verifyMetaWebhookSignature,
+  verifyMetaWebhookSignatureWithSecrets,
+} from "./webhook-signature";
 
 const SECRET = process.env.META_APP_SECRET!;
 
@@ -65,5 +68,34 @@ describe("verifyMetaWebhookSignature", () => {
       const header = signedHeader(body, originalSecret!);
       expect(verifyMetaWebhookSignature(body, header)).toBe(false);
     });
+  });
+});
+
+describe("verifyMetaWebhookSignatureWithSecrets", () => {
+  const body = '{"entry":[]}';
+
+  it("accepts when any candidate secret matches", () => {
+    expect(
+      verifyMetaWebhookSignatureWithSecrets(body, signedHeader(body, "client-b"), [
+        "client-a",
+        "client-b",
+      ]),
+    ).toBe(true);
+  });
+
+  it("rejects when no candidate matches", () => {
+    expect(
+      verifyMetaWebhookSignatureWithSecrets(body, signedHeader(body, "other"), [
+        "client-a",
+        "client-b",
+      ]),
+    ).toBe(false);
+  });
+
+  it("rejects with an empty candidate list or missing header", () => {
+    expect(
+      verifyMetaWebhookSignatureWithSecrets(body, signedHeader(body), []),
+    ).toBe(false);
+    expect(verifyMetaWebhookSignatureWithSecrets(body, null, ["x"])).toBe(false);
   });
 });

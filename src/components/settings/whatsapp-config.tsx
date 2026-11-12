@@ -74,6 +74,7 @@ export function WhatsAppConfig() {
   const [wabaId, setWabaId] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [verifyToken, setVerifyToken] = useState('');
+  const [appSecret, setAppSecret] = useState('');
   const [pin, setPin] = useState('');
   const [tokenEdited, setTokenEdited] = useState(false);
 
@@ -136,6 +137,7 @@ export function WhatsAppConfig() {
         setWabaId(data.waba_id || '');
         setAccessToken(MASKED_TOKEN);
         setVerifyToken('');
+        setAppSecret('');
         setPin('');
         setTokenEdited(false);
         // Undefined on a row read before migration 039 — treat that as
@@ -147,6 +149,7 @@ export function WhatsAppConfig() {
         setWabaId('');
         setAccessToken('');
         setVerifyToken('');
+        setAppSecret('');
         setPin('');
         setTokenEdited(false);
         setMirrorMedia(true);
@@ -251,6 +254,8 @@ export function WhatsAppConfig() {
         // requires it on first save or when changing numbers; for a
         // simple token rotation, leaving it blank skips re-register.
         pin: pin.trim() || null,
+        // Chave secreta do app da Meta do cliente (opcional; em branco mantém a atual).
+        ...(appSecret.trim() ? { app_secret: appSecret.trim() } : {}),
       };
 
       if (tokenEdited && accessToken !== MASKED_TOKEN && accessToken.trim()) {
@@ -398,6 +403,7 @@ export function WhatsAppConfig() {
       setWabaId('');
       setAccessToken('');
       setVerifyToken('');
+      setAppSecret('');
       setTokenEdited(false);
       setConnectionStatus('disconnected');
       setResetReason(null);
@@ -671,6 +677,24 @@ export function WhatsAppConfig() {
               />
               <p className="text-xs text-muted-foreground">
                 {t('webhookVerifyTokenHint')}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">
+                {t('appSecret')}
+                <span className="ml-1 text-muted-foreground">{t('optional')}</span>
+              </Label>
+              <Input
+                type="password"
+                autoComplete="off"
+                placeholder={t('appSecretPlaceholder')}
+                value={appSecret}
+                onChange={(e) => setAppSecret(e.target.value)}
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
+              />
+              <p className="text-xs text-muted-foreground">
+                {t('appSecretHint')}
               </p>
             </div>
 

@@ -45,3 +45,28 @@ export function verifyMetaWebhookSignature(
   if (a.length !== b.length) return false
   return crypto.timingSafeEqual(a, b)
 }
+
+/**
+ * Verifica a assinatura contra uma lista de chaves candidatas (a chave do
+ * app de cada cliente + a chave global). Aceita se QUALQUER uma bater.
+ * Sem chaves => recusa (falha fechada).
+ */
+export function verifyMetaWebhookSignatureWithSecrets(
+  rawBody: string,
+  signatureHeader: string | null,
+  secrets: string[],
+): boolean {
+  if (!signatureHeader || !signatureHeader.startsWith('sha256=')) return false
+  const candidates = secrets.filter((x) => typeof x === 'string' && x.length > 0)
+  if (candidates.length === 0) return false
+
+  const a = Buffer.from(signatureHeader)
+  for (const secret of candidates) {
+    const expected =
+      'sha256=' +
+      crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+    const b = Buffer.from(expected)
+    if (a.length === b.length && crypto.timingSafeEqual(a, b)) return true
+  }
+  return false
+}
