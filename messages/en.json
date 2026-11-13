@@ -291,7 +291,8 @@
       "noTags": "No tags",
       "noDeals": "No deals",
       "addNotePlaceholder": "Add a note...",
-      "addDeal": "Add deal"
+      "addDeal": "Add deal",
+      "editTags": "Edit tags"
     },
     "aiBanner": {
       "pausedTitle": "AI assistant is paused here",

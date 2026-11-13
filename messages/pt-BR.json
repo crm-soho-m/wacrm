@@ -291,7 +291,8 @@
       "noTags": "Sem etiquetas",
       "noDeals": "Sem negócios",
       "addNotePlaceholder": "Adicione uma anotação...",
-      "addDeal": "Criar negócio"
+      "addDeal": "Criar negócio",
+      "editTags": "Editar etiquetas"
     },
     "aiBanner": {
       "pausedTitle": "O assistente de IA está pausado aqui",

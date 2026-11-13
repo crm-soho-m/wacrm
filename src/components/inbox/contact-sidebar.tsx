@@ -19,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DealForm } from "@/components/pipelines/deal-form";
+import { addContactTag, deleteContactTag } from "@/lib/contacts/tag-api";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useTranslations } from "next-intl";
@@ -30,6 +32,7 @@ interface ContactSidebarProps {
 export function ContactSidebar({ contact }: ContactSidebarProps) {
   const tSidebar = useTranslations("Inbox.sidebar");
   const tThread = useTranslations("Inbox.messageThread");
+  const tTagsTab = useTranslations("Contacts.detailView.tagsTab");
 
   const { accountId } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -39,6 +42,9 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
   const [dealFormOpen, setDealFormOpen] = useState(false);
+  const [tagPickerOpen, setTagPickerOpen] = useState(false);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [savingTags, setSavingTags] = useState(false);
 
   const fetchContactData = useCallback(async () => {
     if (!contact) return;
@@ -92,6 +98,37 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
     // React Compiler's inference agrees with the manual dep list —
     // fixes the `preserve-manual-memoization` lint error.
   }, [contact]);
+
+  // Abre/fecha a lista de etiquetas da conta (mesma lógica da tela de Contatos).
+  const handleToggleTagPicker = useCallback(async () => {
+    const next = !tagPickerOpen;
+    setTagPickerOpen(next);
+    if (next) {
+      const supabase = createClient();
+      const { data } = await supabase.from("tags").select("*").order("name");
+      setAllTags((data ?? []) as Tag[]);
+    }
+  }, [tagPickerOpen]);
+
+  const handleToggleTag = useCallback(
+    async (tagId: string) => {
+      if (!contact) return;
+      setSavingTags(true);
+      const isSelected = tags.some((t) => t.id === tagId);
+      try {
+        if (isSelected) {
+          await deleteContactTag(contact.id, tagId);
+        } else {
+          await addContactTag(contact.id, tagId);
+        }
+        await fetchContactData();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : String(error));
+      }
+      setSavingTags(false);
+    },
+    [contact, tags, fetchContactData],
+  );
 
   const handleAddNote = useCallback(async () => {
     if (!contact || !newNote.trim()) return;
@@ -188,8 +225,51 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
           <div>
             <div className="flex items-center gap-2 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               <TagIcon className="h-3 w-3" />
-              {tSidebar("tags")}
+              <span className="flex-1">{tSidebar("tags")}</span>
+              <Button
+                size="sm"
+                className="h-6 w-6 bg-primary p-0 hover:bg-primary/90"
+                onClick={handleToggleTagPicker}
+                title={tSidebar("editTags")}
+                aria-label={tSidebar("editTags")}
+              >
+                {tagPickerOpen ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+              </Button>
             </div>
+            {tagPickerOpen && (
+              <div className="mt-2 rounded-lg border border-border bg-muted/50 p-2">
+                <p className="mb-2 px-1 text-[11px] text-muted-foreground">
+                  {allTags.length === 0
+                    ? tTagsTab("noTagsAvailable")
+                    : tTagsTab("clickTagDesc")}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {allTags.map((tag) => {
+                    const selected = tags.some((t) => t.id === tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        onClick={() => handleToggleTag(tag.id)}
+                        disabled={savingTags}
+                        className={cn(
+                          "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium transition-all",
+                          selected
+                            ? "ring-2 ring-primary ring-offset-1 ring-offset-border"
+                            : "opacity-50 hover:opacity-80",
+                        )}
+                        style={{
+                          backgroundColor: `${tag.color}20`,
+                          color: tag.color,
+                        }}
+                      >
+                        {selected && <Check className="mr-1 h-2.5 w-2.5" />}
+                        {tag.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <div className="mt-2 flex flex-wrap gap-1">
               {tags.length === 0 ? (
                 <p className="px-1 text-xs text-muted-foreground">{tSidebar("noTags")}</p>
