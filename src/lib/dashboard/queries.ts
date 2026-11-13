@@ -1,12 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import {
-  daysAgoStart,
-  DOW_SHORT_MON_FIRST,
-  lastNDayKeys,
-  localDayKey,
-  mondayIndex,
-  startOfLocalDay,
-} from './date-utils'
+import { DOW_SHORT_MON_FIRST, localDayKey, mondayIndex } from './date-utils'
+import { periodDayKeys, type DashboardPeriod } from './period'
 import type {
   ActivityItem,
   ConversationsSeriesPoint,
@@ -29,50 +23,62 @@ type DB = SupabaseClient
 
 // --- 1. Metric cards ---------------------------------------------------
 
-export async function loadMetrics(db: DB): Promise<MetricsBundle> {
-  const todayStart = startOfLocalDay().toISOString()
-  const yesterdayStart = daysAgoStart(1).toISOString()
+export async function loadMetrics(db: DB, p: DashboardPeriod): Promise<MetricsBundle> {
+  const cur = { from: p.start.toISOString(), to: p.end.toISOString() }
+  const prev = { from: p.prevStart.toISOString(), to: p.prevEnd.toISOString() }
 
   const [
     openConvCur,
-    newConvToday,
-    newConvYesterday,
-    newContactsToday,
-    newContactsYesterday,
+    newConvCur,
+    newConvPrev,
+    newContactsCur,
+    newContactsPrev,
     openDeals,
-    messagesToday,
-    messagesYesterday,
+    messagesCur,
+    messagesPrev,
   ] = await Promise.all([
     db.from('conversations').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     db
       .from('conversations')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'open')
-      .gte('created_at', todayStart),
+      .gte('created_at', cur.from)
+      .lt('created_at', cur.to),
     db
       .from('conversations')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'open')
-      .gte('created_at', yesterdayStart)
-      .lt('created_at', todayStart),
-    db.from('contacts').select('id', { count: 'exact', head: true }).gte('created_at', todayStart),
+      .gte('created_at', prev.from)
+      .lt('created_at', prev.to),
     db
       .from('contacts')
       .select('id', { count: 'exact', head: true })
-      .gte('created_at', yesterdayStart)
-      .lt('created_at', todayStart),
-    db.from('deals').select('value, status').eq('status', 'open'),
+      .gte('created_at', cur.from)
+      .lt('created_at', cur.to),
+    db
+      .from('contacts')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', prev.from)
+      .lt('created_at', prev.to),
+    // Negócios abertos que entraram no período
+    db
+      .from('deals')
+      .select('value, status')
+      .eq('status', 'open')
+      .gte('created_at', cur.from)
+      .lt('created_at', cur.to),
     db
       .from('messages')
       .select('id', { count: 'exact', head: true })
       .eq('sender_type', 'agent')
-      .gte('created_at', todayStart),
+      .gte('created_at', cur.from)
+      .lt('created_at', cur.to),
     db
       .from('messages')
       .select('id', { count: 'exact', head: true })
       .eq('sender_type', 'agent')
-      .gte('created_at', yesterdayStart)
-      .lt('created_at', todayStart),
+      .gte('created_at', prev.from)
+      .lt('created_at', prev.to),
   ])
 
   const openDealsRows = (openDeals.data ?? []) as { value: number | null }[]
@@ -81,20 +87,19 @@ export async function loadMetrics(db: DB): Promise<MetricsBundle> {
   return {
     activeConversations: {
       current: openConvCur.count ?? 0,
-      // "vs yesterday" on a current-state count has no clean answer
-      // without snapshots — we show the delta in NEW open conversations
-      // today vs yesterday. That's the business-meaningful daily signal.
-      previous: (newConvToday.count ?? 0) - (newConvYesterday.count ?? 0),
+      // Conversas abertas é um retrato do momento; a variação mostra
+      // as novas conversas abertas no período vs o período anterior.
+      previous: (newConvCur.count ?? 0) - (newConvPrev.count ?? 0),
     },
     newContactsToday: {
-      current: newContactsToday.count ?? 0,
-      previous: newContactsYesterday.count ?? 0,
+      current: newContactsCur.count ?? 0,
+      previous: newContactsPrev.count ?? 0,
     },
     openDealsValue,
     openDealsCount: openDealsRows.length,
     messagesSentToday: {
-      current: messagesToday.count ?? 0,
-      previous: messagesYesterday.count ?? 0,
+      current: messagesCur.count ?? 0,
+      previous: messagesPrev.count ?? 0,
     },
   }
 }
@@ -103,17 +108,17 @@ export async function loadMetrics(db: DB): Promise<MetricsBundle> {
 
 export async function loadConversationsSeries(
   db: DB,
-  rangeDays: number,
+  p: DashboardPeriod,
 ): Promise<ConversationsSeriesPoint[]> {
-  const start = daysAgoStart(rangeDays - 1).toISOString()
   const { data, error } = await db
     .from('messages')
     .select('created_at, sender_type')
-    .gte('created_at', start)
+    .gte('created_at', p.start.toISOString())
+    .lt('created_at', p.end.toISOString())
     .order('created_at', { ascending: true })
   if (error) throw error
 
-  const keys = lastNDayKeys(rangeDays)
+  const keys = periodDayKeys(p)
   const buckets = new Map<string, { incoming: number; outgoing: number }>()
   for (const k of keys) buckets.set(k, { incoming: 0, outgoing: 0 })
 
@@ -130,10 +135,15 @@ export async function loadConversationsSeries(
 
 // --- 3. Pipeline donut -------------------------------------------------
 
-export async function loadPipelineDonut(db: DB): Promise<PipelineDonutData> {
+export async function loadPipelineDonut(db: DB, p: DashboardPeriod): Promise<PipelineDonutData> {
   const [stagesRes, dealsRes] = await Promise.all([
     db.from('pipeline_stages').select('id, name, color, pipeline_id, position').order('position'),
-    db.from('deals').select('stage_id, value, status').eq('status', 'open'),
+    db
+      .from('deals')
+      .select('stage_id, value, status')
+      .eq('status', 'open')
+      .gte('created_at', p.start.toISOString())
+      .lt('created_at', p.end.toISOString()),
   ])
 
   const stages =
@@ -169,17 +179,18 @@ export async function loadPipelineDonut(db: DB): Promise<PipelineDonutData> {
 
 // --- 4. Response time by day of week ----------------------------------
 
-export async function loadResponseTime(db: DB): Promise<ResponseTimeSummary> {
+export async function loadResponseTime(db: DB, p: DashboardPeriod): Promise<ResponseTimeSummary> {
   // Pull the last 14 days of messages in one shot, then walk per
   // conversation to find each "first inbound" → "first subsequent
   // outbound" pair. 14 days gives us both "this week" + "last week"
   // with enough overlap if the user opens the dashboard late on a
   // Monday.
-  const fourteenDaysAgo = daysAgoStart(13).toISOString()
+  // Busca o período atual + o anterior (para a comparação).
   const { data, error } = await db
     .from('messages')
     .select('conversation_id, sender_type, created_at')
-    .gte('created_at', fourteenDaysAgo)
+    .gte('created_at', p.prevStart.toISOString())
+    .lt('created_at', p.end.toISOString())
     .order('conversation_id', { ascending: true })
     .order('created_at', { ascending: true })
   if (error) throw error
@@ -216,9 +227,9 @@ export async function loadResponseTime(db: DB): Promise<ResponseTimeSummary> {
     }
   }
 
-  const now = new Date()
-  const thisWeekStart = daysAgoStart(mondayIndex(now))
-  const lastWeekStart = daysAgoStart(mondayIndex(now) + 7)
+  // thisWeek* = período escolhido; lastWeek* = período anterior.
+  const thisWeekStart = p.start
+  const lastWeekStart = p.prevStart
 
   // Per-day-of-week buckets, averaged over both weeks' worth of data
   // so each bar has more samples to stand on. If a day has no samples
@@ -231,9 +242,9 @@ export async function loadResponseTime(db: DB): Promise<ResponseTimeSummary> {
   for (const s of samples) {
     const diffMin = (s.responseAt.getTime() - s.customerAt.getTime()) / 60_000
     if (diffMin < 0) continue
-    const dow = mondayIndex(s.customerAt)
-    byDow.get(dow)!.push(diffMin)
     if (s.customerAt >= thisWeekStart) {
+      // O gráfico por dia da semana considera só o período escolhido.
+      byDow.get(mondayIndex(s.customerAt))!.push(diffMin)
       thisWeekMins.push(diffMin)
     } else if (s.customerAt >= lastWeekStart && s.customerAt < thisWeekStart) {
       lastWeekMins.push(diffMin)
@@ -265,7 +276,13 @@ export async function loadResponseTime(db: DB): Promise<ResponseTimeSummary> {
 
 // --- 5. Activity feed --------------------------------------------------
 
-export async function loadActivity(db: DB, limit = 20): Promise<ActivityItem[]> {
+export async function loadActivity(
+  db: DB,
+  p: DashboardPeriod,
+  limit = 20,
+): Promise<ActivityItem[]> {
+  const from = p.start.toISOString()
+  const to = p.end.toISOString()
   // Pull ~10 from each source (plenty of headroom after merge-sort),
   // then interleave by timestamp. The individual per-table limits
   // keep the payload small; the final limit is enforced after sort.
@@ -274,26 +291,36 @@ export async function loadActivity(db: DB, limit = 20): Promise<ActivityItem[]> 
       .from('messages')
       .select('id, content_text, sender_type, created_at, conversation_id, conversations(contact_id, contacts(name, phone))')
       .eq('sender_type', 'customer')
+      .gte('created_at', from)
+      .lt('created_at', to)
       .order('created_at', { ascending: false })
       .limit(10),
     db
       .from('contacts')
       .select('id, name, phone, created_at')
+      .gte('created_at', from)
+      .lt('created_at', to)
       .order('created_at', { ascending: false })
       .limit(10),
     db
       .from('deals')
       .select('id, title, updated_at, stage:pipeline_stages(name)')
+      .gte('updated_at', from)
+      .lt('updated_at', to)
       .order('updated_at', { ascending: false })
       .limit(10),
     db
       .from('broadcasts')
       .select('id, name, status, total_recipients, created_at')
+      .gte('created_at', from)
+      .lt('created_at', to)
       .order('created_at', { ascending: false })
       .limit(5),
     db
       .from('automation_logs')
       .select('id, trigger_event, status, created_at, automation:automations(name), contact:contacts(name, phone)')
+      .gte('created_at', from)
+      .lt('created_at', to)
       .order('created_at', { ascending: false })
       .limit(10),
   ])

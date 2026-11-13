@@ -71,17 +71,28 @@
     "retry": "Tentar novamente"
   },
   "Dashboard": {
+    "period": {
+      "today": "Hoje",
+      "7": "7 dias",
+      "30": "30 dias",
+      "90": "90 dias",
+      "month": "Este mês",
+      "custom": "Personalizado",
+      "from": "Data inicial",
+      "to": "Data final",
+      "until": "até"
+    },
     "page": {
       "greeting": "Olá, {name}",
       "title": "Painel",
       "description": "Veja em tempo real suas conversas, contatos, negócios, disparos e automações.",
       "activeConversations": "Conversas ativas",
-      "newContactsToday": "Novos contatos hoje",
+      "newContactsToday": "Novos contatos",
       "openDealsValue": "Valor em negócios abertos",
-      "messagesSentToday": "Mensagens enviadas hoje",
-      "newTodayVsYesterday": "novas hoje em relação a ontem",
-      "vsYesterday": "em relação a ontem",
-      "openDeals": "{count} {count, plural, =1 {negócio aberto} other {negócios abertos}}",
+      "messagesSentToday": "Mensagens enviadas",
+      "newTodayVsYesterday": "novas em relação ao período anterior",
+      "vsYesterday": "em relação ao período anterior",
+      "openDeals": "{count} {count, plural, =1 {negócio aberto} other {negócios abertos}} no período",
       "noChange": "Sem alteração {suffix}"
     },
     "quickActions": {
@@ -104,7 +115,7 @@
     },
     "conversationsChart": {
       "title": "Conversas ao longo do tempo",
-      "description": "Volume diário de mensagens por direção",
+      "description": "Volume diário de mensagens por direção no período",
       "days": "{count} dias",
       "noActivity": "Nenhuma mensagem neste período",
       "noActivityHint": "Envie ou receba mensagens para começar a preencher este gráfico.",
@@ -116,7 +127,7 @@
     },
     "pipelineDonut": {
       "title": "Valor do funil",
-      "description": "Negócios abertos por etapa",
+      "description": "Negócios abertos por etapa que entraram no período",
       "noOpenDeals": "Nenhum negócio aberto ainda",
       "noOpenDealsHint": "Crie negócios em Funis para ver o resumo por etapa aqui.",
       "dealCount": "{count} {count, plural, =1 {negócio} other {negócios}}",
@@ -127,8 +138,8 @@
       "title": "Tempo médio da primeira resposta",
       "description": "Minutos para responder a primeira mensagem sem resposta de um cliente, por dia da semana",
       "target": "meta {minutes}min",
-      "thisWeek": "Esta semana:",
-      "lastWeek": "Semana passada:",
+      "thisWeek": "No período:",
+      "lastWeek": "Período anterior:",
       "noReplies": "Nenhuma resposta registrada ainda",
       "noRepliesHint": "Este gráfico é preenchido conforme você responde às mensagens dos clientes."
     },
@@ -507,6 +518,26 @@
     }
   },
   "Pipelines": {
+    "filters": {
+      "searchPlaceholder": "Pesquisar por negócio, contato, telefone ou empresa",
+      "filters": "Filtros",
+      "clear": "Limpar",
+      "showing": "Mostrando {shown} de {total} negócios",
+      "assignedTo": "Responsável",
+      "unassigned": "Sem responsável",
+      "all": "Todos",
+      "status": "Status",
+      "statusOpen": "Aberto",
+      "statusWon": "Ganho",
+      "statusLost": "Perdido",
+      "source": "Origem",
+      "noValue": "Não informado",
+      "tag": "Etiqueta do contato",
+      "utmSource": "UTM source",
+      "utmCampaign": "UTM campaign",
+      "from": "Entrada a partir de",
+      "to": "Entrada até"
+    },
     "page": {
       "selectPipeline": "Selecionar funil",
       "noPipelinesYet": "Nenhum funil ainda",

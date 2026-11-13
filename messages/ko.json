@@ -71,17 +71,28 @@
     "retry": "다시 시도"
   },
   "Dashboard": {
+    "period": {
+      "today": "오늘",
+      "7": "7일",
+      "30": "30일",
+      "90": "90일",
+      "month": "이번 달",
+      "custom": "사용자 지정",
+      "from": "시작일",
+      "to": "종료일",
+      "until": "~"
+    },
     "page": {
       "greeting": "Hello, {name}",
       "title": "대시보드",
       "description": "대화, 연락처, 딜, 브로드캐스트, 자동화 전반의 실시간 분석입니다.",
       "activeConversations": "진행 중인 대화",
-      "newContactsToday": "오늘의 신규 연락처",
+      "newContactsToday": "새 연락처",
       "openDealsValue": "진행 중인 딜 금액",
-      "messagesSentToday": "오늘 보낸 메시지",
-      "newTodayVsYesterday": "어제 대비 신규",
-      "vsYesterday": "어제 대비",
-      "openDeals": "진행 중인 딜 {count}건",
+      "messagesSentToday": "보낸 메시지",
+      "newTodayVsYesterday": "이전 기간 대비 신규",
+      "vsYesterday": "이전 기간 대비",
+      "openDeals": "기간 내 진행 중인 딜 {count}개",
       "noChange": "변동 없음 {suffix}"
     },
     "quickActions": {
@@ -104,7 +115,7 @@
     },
     "conversationsChart": {
       "title": "기간별 대화 추이",
-      "description": "방향별 일일 메시지 볼륨",
+      "description": "기간 내 방향별 일일 메시지 수",
       "days": "{count}일",
       "noActivity": "이 기간에는 메시지 활동이 없습니다",
       "noActivityHint": "메시지를 주고받으면 이 차트가 채워지기 시작합니다.",
@@ -116,7 +127,7 @@
     },
     "pipelineDonut": {
       "title": "파이프라인 금액",
-      "description": "단계별 진행 중인 딜",
+      "description": "기간 내 생성된 진행 중 딜 (단계별)",
       "noOpenDeals": "아직 진행 중인 딜이 없습니다",
       "noOpenDealsHint": "파이프라인에서 딜을 만들면 단계별 분포를 여기서 확인할 수 있습니다.",
       "dealCount": "딜 {count}건",
@@ -127,8 +138,8 @@
       "title": "평균 첫 응답 시간",
       "description": "요일별, 고객의 첫 미응답 메시지에 답변하기까지 걸린 시간(분)",
       "target": "목표 {minutes}분",
-      "thisWeek": "이번 주:",
-      "lastWeek": "지난 주:",
+      "thisWeek": "이번 기간:",
+      "lastWeek": "이전 기간:",
       "noReplies": "아직 기록된 응답이 없습니다",
       "noRepliesHint": "고객 메시지에 답변하면 이 차트가 채워집니다."
     },
@@ -507,6 +518,26 @@
     }
   },
   "Pipelines": {
+    "filters": {
+      "searchPlaceholder": "딜, 연락처, 전화번호 또는 회사 검색",
+      "filters": "필터",
+      "clear": "초기화",
+      "showing": "{total}개 중 {shown}개 딜 표시",
+      "assignedTo": "담당자",
+      "unassigned": "담당자 없음",
+      "all": "전체",
+      "status": "상태",
+      "statusOpen": "진행 중",
+      "statusWon": "성사",
+      "statusLost": "실패",
+      "source": "출처",
+      "noValue": "미지정",
+      "tag": "연락처 태그",
+      "utmSource": "UTM source",
+      "utmCampaign": "UTM campaign",
+      "from": "생성 시작일",
+      "to": "생성 종료일"
+    },
     "page": {
       "selectPipeline": "파이프라인 선택",
       "noPipelinesYet": "아직 파이프라인이 없습니다",

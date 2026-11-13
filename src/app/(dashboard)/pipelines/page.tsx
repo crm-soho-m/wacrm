@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Pipeline, PipelineStage, Deal } from "@/types";
 import { PipelineBoard } from "@/components/pipelines/pipeline-board";
 import { PipelineSettings } from "@/components/pipelines/pipeline-settings";
 import { DealForm } from "@/components/pipelines/deal-form";
 import { PipelineAnalytics } from "@/components/pipelines/pipeline-analytics";
+import {
+  PipelineFilters,
+  EMPTY_DEAL_FILTERS,
+  applyDealFilters,
+  useContactTags,
+  type DealFilters,
+} from "@/components/pipelines/pipeline-filters";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -57,6 +64,14 @@ export default function PipelinesPage() {
   const [stages, setStages] = useState<PipelineStage[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Pesquisa e filtros do funil
+  const [filters, setFilters] = useState<DealFilters>(EMPTY_DEAL_FILTERS);
+  const { tags: allTags, contactTags } = useContactTags(deals);
+  const filteredDeals = useMemo(
+    () => applyDealFilters(deals, filters, contactTags),
+    [deals, filters, contactTags],
+  );
 
   // Dialog / sheet state
   const [newPipelineOpen, setNewPipelineOpen] = useState(false);
@@ -412,10 +427,17 @@ export default function PipelinesPage() {
         </div>
       ) : (
         <>
-          <PipelineAnalytics stages={stages} deals={deals} />
+          <PipelineFilters
+            deals={deals}
+            tags={allTags}
+            filters={filters}
+            onChange={setFilters}
+            shownCount={filteredDeals.length}
+          />
+          <PipelineAnalytics stages={stages} deals={filteredDeals} />
           <PipelineBoard
             stages={stages}
-            deals={deals}
+            deals={filteredDeals}
             onDealMoved={handleDealMoved}
             onAddDeal={handleAddDeal}
             onEditDeal={handleEditDeal}
