@@ -49,6 +49,10 @@ export async function POST(request: Request) {
       utm_source: str(body.utm_source, 200),
       utm_medium: str(body.utm_medium, 200),
       utm_campaign: str(body.utm_campaign, 200),
+      utm_content: str(body.utm_content, 200),
+      utm_term: str(body.utm_term, 200),
+      gclid: str(body.gclid, 500),
+      fbclid: str(body.fbclid, 500),
       landing_page: str(body.landing_page, 500),
       lead_message: str(body.message, 2000),
     };

@@ -396,6 +396,10 @@ export interface Deal {
   utm_source?: string | null;
   utm_medium?: string | null;
   utm_campaign?: string | null;
+  utm_content?: string | null;
+  utm_term?: string | null;
+  gclid?: string | null;
+  fbclid?: string | null;
   landing_page?: string | null;
   lead_message?: string | null;
 }

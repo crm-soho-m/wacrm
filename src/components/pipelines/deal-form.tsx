@@ -449,7 +449,17 @@ export function DealForm({
               />
             </div>
 
-                        {deal?.source && (
+            {deal &&
+              (deal.source ||
+                deal.channel ||
+                deal.utm_source ||
+                deal.utm_medium ||
+                deal.utm_campaign ||
+                deal.utm_content ||
+                deal.utm_term ||
+                deal.gclid ||
+                deal.fbclid ||
+                deal.landing_page) && (
               <div className="space-y-1 rounded-lg border border-border bg-muted/50 p-3 text-xs">
                 <p className="font-medium uppercase tracking-wider text-muted-foreground">
                   Origem do lead
@@ -462,6 +472,26 @@ export function DealForm({
                     {[deal.utm_source, deal.utm_medium, deal.utm_campaign]
                       .filter(Boolean)
                       .join(" / ")}
+                  </p>
+                )}
+                {(deal.utm_content || deal.utm_term) && (
+                  <p className="text-muted-foreground">
+                    {[
+                      deal.utm_content && `Anúncio: ${deal.utm_content}`,
+                      deal.utm_term && `Termo: ${deal.utm_term}`,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
+                {(deal.gclid || deal.fbclid) && (
+                  <p className="text-muted-foreground">
+                    {[
+                      deal.gclid && "Clique do Google Ads (gclid)",
+                      deal.fbclid && "Clique da Meta (fbclid)",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </p>
                 )}
                 {deal.landing_page && (
