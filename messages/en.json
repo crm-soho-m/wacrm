@@ -290,7 +290,8 @@
       "deals": "Deals",
       "noTags": "No tags",
       "noDeals": "No deals",
-      "addNotePlaceholder": "Add a note..."
+      "addNotePlaceholder": "Add a note...",
+      "addDeal": "Add deal"
     },
     "aiBanner": {
       "pausedTitle": "AI assistant is paused here",
@@ -547,6 +548,7 @@
       "currency": "Currency",
       "expectedCloseDate": "Expected Close Date",
       "stage": "Stage",
+      "pipeline": "Pipeline",
       "assignedTo": "Assigned To",
       "unassigned": "Unassigned",
       "notes": "Notes",

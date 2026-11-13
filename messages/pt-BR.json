@@ -290,7 +290,8 @@
       "deals": "Negócios",
       "noTags": "Sem etiquetas",
       "noDeals": "Sem negócios",
-      "addNotePlaceholder": "Adicione uma anotação..."
+      "addNotePlaceholder": "Adicione uma anotação...",
+      "addDeal": "Criar negócio"
     },
     "aiBanner": {
       "pausedTitle": "O assistente de IA está pausado aqui",
@@ -547,6 +548,7 @@
       "currency": "Moeda",
       "expectedCloseDate": "Data prevista de fechamento",
       "stage": "Etapa",
+      "pipeline": "Funil",
       "assignedTo": "Responsável",
       "unassigned": "Sem responsável",
       "notes": "Anotações",

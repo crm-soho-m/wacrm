@@ -10,6 +10,7 @@ import type {
   Conversation,
   Deal,
   DealStatus,
+  Pipeline,
   PipelineStage,
   Profile,
 } from "@/types";
@@ -42,6 +43,12 @@ interface DealFormProps {
   stages: PipelineStage[];
   defaultStageId?: string;
   onSaved: () => void;
+  /** Contato já selecionado ao criar (ex.: negócio criado pelo Inbox). */
+  defaultContactId?: string;
+  /** Título sugerido ao criar. */
+  defaultTitle?: string;
+  /** Mostra a escolha de funil (usado fora da tela de Pipelines). */
+  choosePipeline?: boolean;
 }
 
 export function DealForm({
@@ -52,6 +59,9 @@ export function DealForm({
   stages,
   defaultStageId,
   onSaved,
+  defaultContactId,
+  defaultTitle,
+  choosePipeline = false,
 }: DealFormProps) {
   const t = useTranslations("Pipelines.form");
   const supabase = createClient();
@@ -67,6 +77,11 @@ export function DealForm({
   const [notes, setNotes] = useState("");
 
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+  const [selPipelineId, setSelPipelineId] = useState("");
+  const [loadedStages, setLoadedStages] = useState<PipelineStage[]>([]);
+  const effectivePipelineId = choosePipeline ? selPipelineId : pipelineId;
+  const effectiveStages = choosePipeline ? loadedStages : stages;
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [linkedConversation, setLinkedConversation] =
     useState<Conversation | null>(null);
@@ -95,17 +110,58 @@ export function DealForm({
       setExpectedCloseDate(deal.expected_close_date ?? "");
       setNotes(deal.notes ?? "");
     } else {
-      setTitle("");
+      setTitle(defaultTitle ?? "");
       setValue("");
       setCurrency(defaultCurrency);
-      setContactId("");
+      setContactId(defaultContactId ?? "");
       setStageId(defaultStageId || stages[0]?.id || "");
       setAssignedTo("");
       setExpectedCloseDate("");
       setNotes("");
     }
-  }, [open, deal, defaultStageId, stages, defaultCurrency]);
+  }, [open, deal, defaultStageId, stages, defaultCurrency, defaultContactId, defaultTitle]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Escolha de funil (fora da tela de Pipelines): carrega os funis da conta.
+  useEffect(() => {
+    if (!open || !choosePipeline) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("pipelines")
+        .select("*")
+        .order("created_at");
+      if (cancelled) return;
+      const list = (data ?? []) as Pipeline[];
+      setPipelines(list);
+      setSelPipelineId((prev) =>
+        prev && list.some((pl) => pl.id === prev) ? prev : list[0]?.id ?? "",
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, choosePipeline, supabase]);
+
+  // Carrega as etapas do funil escolhido e seleciona a primeira.
+  useEffect(() => {
+    if (!open || !choosePipeline || !selPipelineId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("pipeline_stages")
+        .select("*")
+        .eq("pipeline_id", selPipelineId)
+        .order("position");
+      if (cancelled) return;
+      const list = (data ?? []) as PipelineStage[];
+      setLoadedStages(list);
+      setStageId(list[0]?.id ?? "");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, choosePipeline, selPipelineId, supabase]);
 
   // Load supporting data once the sheet is open
   useEffect(() => {
@@ -152,7 +208,7 @@ export function DealForm({
   }, [open, contactId, supabase]);
 
   async function handleSave() {
-    if (!title.trim() || !contactId || !stageId) {
+    if (!title.trim() || !contactId || !stageId || !effectivePipelineId) {
       toast.error(t("toastRequired"));
       return;
     }
@@ -163,7 +219,7 @@ export function DealForm({
       value: parseFloat(value) || 0,
       currency,
       contact_id: contactId,
-      pipeline_id: pipelineId,
+      pipeline_id: effectivePipelineId,
       stage_id: stageId,
       assigned_to: assignedTo || null,
       notes: notes.trim() || null,
@@ -335,6 +391,23 @@ export function DealForm({
               />
             </div>
 
+            {choosePipeline && (
+              <div className="grid gap-2">
+                <Label className="text-muted-foreground">{t("pipeline")}</Label>
+                <select
+                  value={selPipelineId}
+                  onChange={(e) => setSelPipelineId(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
+                >
+                  {pipelines.map((pl) => (
+                    <option key={pl.id} value={pl.id}>
+                      {pl.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="grid gap-2">
               <Label className="text-muted-foreground">{t("stage")}</Label>
               <select
@@ -342,7 +415,7 @@ export function DealForm({
                 onChange={(e) => setStageId(e.target.value)}
                 className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
               >
-                {stages.map((s) => (
+                {effectiveStages.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
                   </option>

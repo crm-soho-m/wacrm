@@ -290,7 +290,8 @@
       "deals": "딜",
       "noTags": "태그 없음",
       "noDeals": "딜 없음",
-      "addNotePlaceholder": "메모 추가..."
+      "addNotePlaceholder": "메모 추가...",
+      "addDeal": "딜 추가"
     },
     "aiBanner": {
       "pausedTitle": "이 대화에서 AI 어시스턴트가 일시 중지됨",
@@ -547,6 +548,7 @@
       "currency": "통화",
       "expectedCloseDate": "예상 마감일",
       "stage": "단계",
+      "pipeline": "파이프라인",
       "assignedTo": "담당자",
       "unassigned": "담당자 없음",
       "notes": "메모",

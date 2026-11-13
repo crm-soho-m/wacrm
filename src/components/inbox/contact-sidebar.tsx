@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DealForm } from "@/components/pipelines/deal-form";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useTranslations } from "next-intl";
@@ -37,6 +38,7 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
   const [tags, setTags] = useState<(Tag & { contact_tag_id: string })[]>([]);
   const [newNote, setNewNote] = useState("");
   const [addingNote, setAddingNote] = useState(false);
+  const [dealFormOpen, setDealFormOpen] = useState(false);
 
   const fetchContactData = useCallback(async () => {
     if (!contact) return;
@@ -215,7 +217,16 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
           <div>
             <div className="flex items-center gap-2 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               <DollarSign className="h-3 w-3" />
-              {tSidebar("deals")}
+              <span className="flex-1">{tSidebar("deals")}</span>
+              <Button
+                size="sm"
+                className="h-6 w-6 bg-primary p-0 hover:bg-primary/90"
+                onClick={() => setDealFormOpen(true)}
+                title={tSidebar("addDeal")}
+                aria-label={tSidebar("addDeal")}
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
             </div>
             <div className="mt-2 space-y-2">
               {deals.length === 0 ? (
@@ -299,6 +310,17 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
           </div>
         </div>
       </ScrollArea>
+
+      <DealForm
+        open={dealFormOpen}
+        onOpenChange={setDealFormOpen}
+        pipelineId=""
+        stages={[]}
+        choosePipeline
+        defaultContactId={contact.id}
+        defaultTitle={displayName}
+        onSaved={fetchContactData}
+      />
     </div>
   );
 }
