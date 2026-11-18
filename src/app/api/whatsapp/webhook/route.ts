@@ -6,6 +6,8 @@ import { mirrorInboundMedia } from '@/lib/whatsapp/mirror-inbound-media'
 import { normalizePhone } from '@/lib/whatsapp/phone-utils'
 import { findExistingContact, isUniqueViolation } from '@/lib/contacts/dedupe'
 import { reopenClosedConversation } from '@/lib/conversations/reopen'
+import { parseRefCode } from '@/lib/leads/ref-code'
+import { resolveRefLead, advanceFormDeals } from '@/lib/leads/form-conversation'
 import { verifyMetaWebhookSignatureWithSecrets } from '@/lib/whatsapp/webhook-signature'
 import { runAutomationsForTrigger } from '@/lib/automations/engine'
 import { dispatchInboundToFlows } from '@/lib/flows/engine'
@@ -689,13 +691,28 @@ async function processMessage(
   const senderPhone = normalizePhone(message.from)
   const contactName = contact.profile.name
 
+  // Lead de formulário: "Ref: SM26-0042" liga a conversa ao lead certo,
+  // mesmo que o número que escreveu seja outro. Falha aqui nunca
+  // derruba a mensagem — cai no fluxo normal por telefone.
+  let refLead: Awaited<ReturnType<typeof resolveRefLead>> = null
+  const refCode = parseRefCode(message.text?.body)
+  if (refCode) {
+    try {
+      refLead = await resolveRefLead(supabaseAdmin(), accountId, refCode, senderPhone)
+    } catch (err) {
+      console.error('[webhook] ref lookup failed:', err)
+    }
+  }
+
   // Find or create contact
-  const contactOutcome = await findOrCreateContact(
-    accountId,
-    configOwnerUserId,
-    senderPhone,
-    contactName
-  )
+  const contactOutcome: ContactOutcome | null = refLead
+    ? { contact: refLead.contact, wasCreated: false }
+    : await findOrCreateContact(
+        accountId,
+        configOwnerUserId,
+        senderPhone,
+        contactName
+      )
   if (!contactOutcome) return
   const contactRecord = contactOutcome.contact
 
@@ -726,6 +743,13 @@ async function processMessage(
     await handleReaction(message, conversation.id, contactRecord.id)
     return
   }
+
+  // Primeira mensagem de um lead de formulário: "Formulário preenchido"
+  // passa para "Conversa iniciada".
+  await advanceFormDeals(supabaseAdmin(), accountId, contactRecord.id, {
+    dealId: refLead?.dealId,
+    conversationId: conversation.id,
+  })
 
   // Parse message content based on type
   const { contentText, mediaUrl, mediaType, interactiveReplyId } =
